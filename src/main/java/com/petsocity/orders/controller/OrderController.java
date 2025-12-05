@@ -37,11 +37,18 @@ public class OrderController {
         return ResponseEntity.ok(service.getAllOrders());
     }
 
-    @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrder(@PathVariable Long orderId) {
+@GetMapping("/{orderId}")
+public ResponseEntity<?> getOrder(@PathVariable Long orderId) {
+    try {
         return service.getOrderByOrderId(orderId)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Orden no encontrada")));
+    } catch (Exception e) {
+        e.printStackTrace(); // <- Aquí verás la causa real en la consola
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error interno del servidor", "message", e.getMessage()));
     }
+}
+
 }
