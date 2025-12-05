@@ -20,11 +20,12 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody Order order) {
 
-        String timestamp = String.valueOf(System.currentTimeMillis());
+        // ✅ Generar ID único basado en timestamp
+        long generatedId = System.currentTimeMillis();
 
-        order.setOrderId(timestamp);
-        order.setOrderNumber("#" + timestamp);
-        order.setOrderCode("ORDER" + timestamp);
+        order.setOrderId(generatedId);
+        order.setOrderNumber("#" + generatedId);
+        order.setOrderCode("ORDER" + generatedId);
 
         Order saved = service.createOrder(order);
 
@@ -36,13 +37,11 @@ public class OrderController {
         return ResponseEntity.ok(service.getAllOrders());
     }
 
-
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrder(@PathVariable String orderId) {
-    return service.getOrderByOrderId(orderId)
-            .<ResponseEntity<?>>map(ResponseEntity::ok)
-            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Orden no encontrada")));
-}
-
+    public ResponseEntity<?> getOrder(@PathVariable Long orderId) {
+        return service.getOrderByOrderId(orderId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Orden no encontrada")));
+    }
 }
