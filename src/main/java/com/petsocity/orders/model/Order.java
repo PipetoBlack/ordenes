@@ -14,7 +14,10 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String orderId;
+    // Identificador público de la orden
+    @Column(nullable = false, unique = true)
+    private Long orderId;
+
     private String orderNumber;
     private String orderCode;
 
