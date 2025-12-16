@@ -21,7 +21,10 @@ public class WeatherController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getWeather(@RequestParam double lat, @RequestParam double lon) {
+    public ResponseEntity<?> getWeather(
+            @RequestParam double lat,
+            @RequestParam double lon
+    ) {
         try {
             String json = weatherService.getWeatherByCoords(lat, lon);
             return ResponseEntity.ok(json);
@@ -31,3 +34,4 @@ public class WeatherController {
         }
     }
 }
+

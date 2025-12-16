@@ -16,12 +16,22 @@ public class WeatherService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String getWeatherByCoords(double lat, double lon) {
+
+        // Endpoint correcto según la documentación de Meteored
         String url = String.format(
             "%s/api/forecast/v1/daily/coords/%.7f/%.7f/0/America/Santiago?key=%s",
-            meteoredBaseUrl, lat, lon, meteoredApiKey
+            meteoredBaseUrl,
+            lat,
+            lon,
+            meteoredApiKey
         );
 
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-        return response.getBody();
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            System.out.println("Error llamando a Meteored: " + e.getMessage());
+            throw new RuntimeException("Error al obtener clima desde Meteored");
+        }
     }
 }
