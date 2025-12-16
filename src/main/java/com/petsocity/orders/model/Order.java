@@ -32,5 +32,8 @@ public class Order {
 
     private String deliveryMethod;
 
+    @Column(nullable = false)
+    private String status; // CREATED, PENDING_PAYMENT, PAID, REJECTED
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -1,5 +1,6 @@
 package com.petsocity.orders.service;
 
+import com.petsocity.orders.client.PaymentClient;
 import com.petsocity.orders.model.Order;
 import com.petsocity.orders.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.Optional;
 public class OrderService {
 
     private final OrderRepository repository;
+    private final PaymentClient paymentClient;
 
     public Order createOrder(Order order) {
 
@@ -25,7 +27,19 @@ public class OrderService {
         order.setOrderCode("ORDER" + generatedId);
         order.setCreatedAt(LocalDateTime.now());
 
-        return repository.save(order);
+        Order saved = repository.save(order);
+
+        //  Llamar a la API Pagos
+        paymentClient.createPayment(saved);
+
+        return saved;
+    }
+
+        public void markAsPaid(String orderCode) {
+        repository.findByOrderCode(orderCode).ifPresent(o -> {
+            o.setStatus("PAID");
+            repository.save(o);
+        });
     }
 
     public List<Order> getAllOrders() {
