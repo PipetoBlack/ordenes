@@ -25,7 +25,7 @@ public class WeatherService {
             lon,
             meteoredApiKey
         );
-
+        System.out.println("URL Meteored: " + url);
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             return response.getBody();
