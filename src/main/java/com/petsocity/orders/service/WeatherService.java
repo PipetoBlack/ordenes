@@ -3,6 +3,7 @@ package com.petsocity.orders.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -31,10 +32,15 @@ public class WeatherService {
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            System.out.println("Respuesta Meteored: " + response.getBody());
             return response.getBody();
+        } catch (HttpClientErrorException e) {
+            System.out.println("Error HTTP: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            throw new RuntimeException("Error HTTP al obtener ubicación");
         } catch (Exception e) {
-            System.out.println("Error llamando a Meteored: " + e.getMessage());
-            throw new RuntimeException("Error al obtener ubicación desde Meteored");
+            System.out.println("Error general: " + e.getMessage());
+            throw new RuntimeException("Error general al obtener ubicación");
         }
+
     }
 }
