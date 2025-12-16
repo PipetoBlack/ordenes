@@ -1,4 +1,5 @@
 package com.petsocity.orders.service;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,23 +16,25 @@ public class WeatherService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String getWeatherByCoords(double lat, double lon) {
+    public String getLocationByCoords(double lat, double lon) {
 
-        // Endpoint correcto según la documentación de Meteored
+        // ✅ Endpoint gratuito de Meteored
         String url = String.format(
-            "%s/api/forecast/v1/daily/coords/%.7f/%.7f/0/America/Santiago?key=%s",
+            "%s/api/location/v1/search/coords/%.7f/%.7f?key=%s",
             meteoredBaseUrl,
             lat,
             lon,
             meteoredApiKey
         );
-        System.out.println("URL Meteored: " + url);
+
+        System.out.println("URL Meteored (Location): " + url);
+
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             return response.getBody();
         } catch (Exception e) {
             System.out.println("Error llamando a Meteored: " + e.getMessage());
-            throw new RuntimeException("Error al obtener clima desde Meteored");
+            throw new RuntimeException("Error al obtener ubicación desde Meteored");
         }
     }
 }
