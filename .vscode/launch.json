@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-OrdersServiceApplication<orders>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.petsocity.orders.OrdersServiceApplication",
+            "projectName": "orders",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

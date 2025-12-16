@@ -25,6 +25,7 @@ public class OrderService {
         order.setOrderId(generatedId);
         order.setOrderNumber("#" + generatedId);
         order.setOrderCode("ORDER" + generatedId);
+        order.setStatus("PENDING_PAYMENT"); 
         order.setCreatedAt(LocalDateTime.now());
 
         Order saved = repository.save(order);
