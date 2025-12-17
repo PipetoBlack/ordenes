@@ -1,66 +1,22 @@
 package com.petsocity.orders.service;
 
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @Service
 public class WeatherService {
 
-    @Value("${meteored.api.key}")
-    private String apiKey;
-
-    @Value("${meteored.base.url}")
-    private String baseUrl;
-
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private HttpHeaders headers() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("x-api-key", apiKey);
-        return headers;
+    /**
+     * Clima actual desde estación SCQN (Santiago)
+     */
+    public Map<String, Object> getCurrentWeatherSantiago() {
+
+        String url = "https://api.gael.cloud/general/public/clima/SCQN";
+
+        return restTemplate.getForObject(url, Map.class);
     }
-
-    // 1️⃣ Obtener ubicación (HASH) por coordenadas
-    public Map<String, Object> getLocationByCoords(double lat, double lon) {
-
-    String url = String.format(
-        "%s/api/location/v1/search/coords/%.7f/%.7f",
-        baseUrl, lat, lon
-    );
-
-    HttpEntity<Void> entity = new HttpEntity<>(headers());
-
-    ResponseEntity<Map> response = restTemplate.exchange(
-        url,
-        HttpMethod.GET,
-        entity,
-        Map.class
-    );
-
-    return response.getBody();
-    }
-
-
-    // 2️⃣ Forecast diario usando HASH
-    public String getDailyForecastByHash(String hash) {
-
-        if (hash == null || hash.isBlank()) {
-            throw new IllegalArgumentException("Hash inválido o vacío");
-        }
-
-        String url = baseUrl + "/api/forecast/v1/daily/" + hash;
-
-        HttpEntity<Void> entity = new HttpEntity<>(headers());
-
-        ResponseEntity<String> response = restTemplate.exchange(
-                url, HttpMethod.GET, entity, String.class
-        );
-
-        return response.getBody();
-    }
-
 }
