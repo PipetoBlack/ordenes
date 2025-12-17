@@ -1,5 +1,7 @@
 package com.petsocity.orders.service;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -23,21 +25,25 @@ public class WeatherService {
     }
 
     // 1️⃣ Obtener ubicación (HASH) por coordenadas
-    public String getLocationByCoords(double lat, double lon) {
+    public Map<String, Object> getLocationByCoords(double lat, double lon) {
 
-        String url = String.format(
-                "%s/api/location/v1/search/coords/%.7f/%.7f",
-                baseUrl, lat, lon
-        );
+    String url = String.format(
+        "%s/api/location/v1/search/coords/%.7f/%.7f",
+        baseUrl, lat, lon
+    );
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers());
+    HttpEntity<Void> entity = new HttpEntity<>(headers());
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                url, HttpMethod.GET, entity, String.class
-        );
+    ResponseEntity<Map> response = restTemplate.exchange(
+        url,
+        HttpMethod.GET,
+        entity,
+        Map.class
+    );
 
-        return response.getBody();
+    return response.getBody();
     }
+
 
     // 2️⃣ Forecast diario usando HASH
     public String getDailyForecastByHash(String hash) {

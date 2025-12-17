@@ -23,12 +23,11 @@ public class WeatherController {
             @RequestParam double lat,
             @RequestParam double lon
     ) {
-        String json = weatherService.getLocationByCoords(lat, lon);
-
-        return ResponseEntity.ok()
-                .header("Content-Type", "application/json")
-                .body(json);
+        return ResponseEntity.ok(
+            weatherService.getLocationByCoords(lat, lon)
+        );
     }
+
 
 
     // Paso 2: obtener forecast con HASH
