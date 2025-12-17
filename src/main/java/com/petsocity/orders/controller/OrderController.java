@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -22,24 +23,14 @@ public class OrderController {
 public ResponseEntity<?> createOrder(@RequestBody Order order) {
     try {
         Order saved = service.createOrder(order);
-
-        Map<String, Object> response = Map.of(
-            "id", saved.getId(),
-            "orderNumber", saved.getOrderNumber(),
-            "orderCode", saved.getOrderCode(),
-            "status", saved.getStatus(),
-            "paymentUrl", saved.getPaymentUrl(),
-            "preferenceId", saved.getPreferenceId() // si lo usas en el front
-        );
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     } catch (Exception e) {
         e.printStackTrace();
+        Map<String, Object> errorBody = new HashMap<>();
+        errorBody.put("error", "Error al crear la orden");
+        errorBody.put("message", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                        "error", "Error al crear la orden",
-                        "message", e.getMessage()
-                ));
+                .body(errorBody);
     }
 }
     @GetMapping

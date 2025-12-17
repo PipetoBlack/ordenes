@@ -1,4 +1,3 @@
-//service
 package com.petsocity.orders.service;
 
 import com.petsocity.orders.client.PaymentClient;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -36,14 +36,15 @@ public class OrderService {
             Order saved = repository.save(order);
 
             try {
-                // LLAMADA AL MICROSERVICIO DE PAYMENTS (que ahora usa Mercado Pago)
-                String paymentUrl = paymentClient.createPayment(saved);
+                // Llamada al microservicio de pagos
+                Map<String, String> paymentResp = paymentClient.createPayment(saved);
 
-                // Guardar URL de checkout
-                saved.setPaymentUrl(paymentUrl);
+                // Guardar URL de checkout y preferenceId
+                saved.setPaymentUrl(paymentResp.get("paymentUrl"));
+                saved.setPreferenceId(paymentResp.get("preferenceId"));
                 saved.setStatus("PENDING_PAYMENT");
-                repository.save(saved);
 
+                repository.save(saved);
                 log.info("Pago creado correctamente para orden {}", saved.getOrderCode());
 
             } catch (Exception e) {

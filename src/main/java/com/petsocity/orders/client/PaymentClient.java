@@ -20,7 +20,8 @@ public class PaymentClient {
     @Value("${payments.api.url}")
     private String paymentsApiUrl; // microservicio Payments
 
-    public String createPayment(Order order) {
+    
+    public Map<String, String> createPayment(Order order) {
         // Preparar payload
         Map<String, Object> body = Map.of(
                 "commerceOrder", order.getOrderCode(),
@@ -42,13 +43,16 @@ public class PaymentClient {
 
         Map<String, Object> data = response.getBody();
 
-        if (data == null || !data.containsKey("url")) {
+        if (data == null || !data.containsKey("preferenceId") || !data.containsKey("paymentUrl")) {
             throw new RuntimeException("Respuesta inválida desde Payments API: " + data);
         }
 
-        return (String) data.get("url"); // URL de Mercado Pago (init_point)
+        // Convertir todo a String
+        return Map.of(
+                "preferenceId", data.get("preferenceId").toString(),
+                "paymentUrl", data.get("paymentUrl").toString()
+        );
     }
-
     private Integer extractTotal(String totalsJson) {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
