@@ -18,21 +18,30 @@ public class OrderController {
 
     private final OrderService service;
 
-    @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody Order order) {
-        try {
-            Order saved = service.createOrder(order);
-            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "error", "Error al crear la orden",
-                            "message", e.getMessage()
-                    ));
-        }
-    }
+@PostMapping
+public ResponseEntity<?> createOrder(@RequestBody Order order) {
+    try {
+        Order saved = service.createOrder(order);
 
+        Map<String, Object> response = Map.of(
+            "id", saved.getId(),
+            "orderNumber", saved.getOrderNumber(),
+            "orderCode", saved.getOrderCode(),
+            "status", saved.getStatus(),
+            "paymentUrl", saved.getPaymentUrl(),
+            "preferenceId", saved.getPreferenceId() // si lo usas en el front
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "error", "Error al crear la orden",
+                        "message", e.getMessage()
+                ));
+    }
+}
     @GetMapping
     public ResponseEntity<?> getAllOrders() {
         return ResponseEntity.ok(service.getAllOrders());

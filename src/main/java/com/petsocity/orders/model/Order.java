@@ -39,5 +39,8 @@ public class Order {
     @Column(columnDefinition = "TEXT")
     private String paymentUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String preferenceId;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }
