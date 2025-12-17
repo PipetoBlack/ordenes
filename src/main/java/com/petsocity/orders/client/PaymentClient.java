@@ -1,70 +1,71 @@
+//client/paymentClient
+
 package com.petsocity.orders.client;
 
-import java.util.Map;
-
+import com.petsocity.orders.model.Order;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-import com.petsocity.orders.dto.CustomerDataDTO;
-import com.petsocity.orders.dto.TotalsDTO;
 
-
-import com.petsocity.orders.model.Order;
-
-import lombok.RequiredArgsConstructor;
-import tools.jackson.databind.ObjectMapper;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class PaymentClient {
 
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
     @Value("${payments.api.url}")
-    private String paymentsApiUrl;
+    private String paymentsApiUrl; // microservicio Payments
 
     public String createPayment(Order order) {
-
-        CustomerDataDTO customer =
-            objectMapper.readValue(order.getCustomerData(), CustomerDataDTO.class);
-        TotalsDTO totals =
-            objectMapper.readValue(order.getTotals(), TotalsDTO.class);
-
+        // Preparar payload
         Map<String, Object> body = Map.of(
-            "commerceOrder", order.getOrderCode(),
-            "amount", totals.getTotal(),
-            "subject", "Compra PetSocity",
-            "email", customer.getCorreo(),
-            "urlConfirmation", "https://payments-payment.up.railway.app/api/v1/payments/webhook",
-            "urlReturn", "https://petsocity.vercel.app/compraExitosa?orderId=" + order.getOrderId()
+                "commerceOrder", order.getOrderCode(),
+                "amount", extractTotal(order.getTotals()),
+                "subject", "Compra PetSocity",
+                "email", extractEmail(order.getCustomerData()),
+                "urlReturn", "https://petsocity.vercel.app/compraExitosa?orderId=" + order.getOrderId(),
+                "urlConfirmation", "https://orders-petsocity.up.railway.app/api/v1/orders/webhook"
         );
 
-        ResponseEntity<Map> response =
-            restTemplate.postForEntity(
-                paymentsApiUrl + "/api/v1/payments",
-                body,
-                Map.class
-            );
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                paymentsApiUrl + "/api/v1/payments/create", request, Map.class
+        );
 
         Map<String, Object> data = response.getBody();
 
-        if (data == null || !data.containsKey("url") || !data.containsKey("token")) {
-            throw new RuntimeException("Respuesta inválida desde Payments: " + data);
+        if (data == null || !data.containsKey("url")) {
+            throw new RuntimeException("Respuesta inválida desde Payments API: " + data);
         }
 
-        Object urlObj = data.get("url");
-        Object tokenObj = data.get("token");
+        return (String) data.get("url"); // URL de Mercado Pago (init_point)
+    }
 
-        if (!(urlObj instanceof String) || !(tokenObj instanceof String)) {
-            throw new RuntimeException("Formato inválido de URL/token desde Payments");
+    private Integer extractTotal(String totalsJson) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            Map<String, Object> totals = mapper.readValue(totalsJson, Map.class);
+            return (Integer) totals.get("total");
+        } catch (Exception e) {
+            throw new RuntimeException("Error leyendo total de totals JSON", e);
         }
+    }
 
-        return UriComponentsBuilder
-                .fromUriString((String) urlObj)
-                .queryParam("token", tokenObj)
-                .toUriString();
+    private String extractEmail(String customerDataJson) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            Map<String, Object> customerData = mapper.readValue(customerDataJson, Map.class);
+            return (String) customerData.get("correo");
+        } catch (Exception e) {
+            throw new RuntimeException("Error leyendo correo del customerData", e);
+        }
     }
 }

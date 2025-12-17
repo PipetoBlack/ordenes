@@ -1,3 +1,4 @@
+//dto/TotalsDTO
 package com.petsocity.orders.dto;
 
 import lombok.Data;

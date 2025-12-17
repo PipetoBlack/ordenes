@@ -1,3 +1,4 @@
+//model
 package com.petsocity.orders.model;
 
 import jakarta.persistence.*;
