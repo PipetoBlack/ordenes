@@ -1,3 +1,4 @@
+//model
 package com.petsocity.orders.model;
 
 import jakarta.persistence.*;
@@ -34,6 +35,12 @@ public class Order {
 
     @Column(nullable = false)
     private String status; // CREATED, PENDING_PAYMENT, PAID, REJECTED
+
+    @Column(columnDefinition = "TEXT")
+    private String paymentUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String preferenceId;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }
