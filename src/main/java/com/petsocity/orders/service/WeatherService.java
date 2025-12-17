@@ -42,6 +42,10 @@ public class WeatherService {
     // 2️⃣ Forecast diario usando HASH
     public String getDailyForecastByHash(String hash) {
 
+        if (hash == null || hash.isBlank()) {
+            throw new IllegalArgumentException("Hash inválido o vacío");
+        }
+
         String url = baseUrl + "/api/forecast/v1/daily/" + hash;
 
         HttpEntity<Void> entity = new HttpEntity<>(headers());
@@ -52,4 +56,5 @@ public class WeatherService {
 
         return response.getBody();
     }
+
 }

@@ -29,6 +29,15 @@ public class WeatherController {
     // Paso 2: obtener forecast con HASH
     @GetMapping("/forecast/daily")
     public ResponseEntity<?> getForecast(@RequestParam String hash) {
-        return ResponseEntity.ok(weatherService.getDailyForecastByHash(hash));
+        try {
+            return ResponseEntity.ok(weatherService.getDailyForecastByHash(hash));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Error obteniendo pronóstico"));
+        }
     }
+
 }
