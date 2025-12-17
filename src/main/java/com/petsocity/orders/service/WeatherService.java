@@ -1,6 +1,10 @@
 package com.petsocity.orders.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,20 +20,27 @@ public class WeatherService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Obtiene el pronóstico del tiempo usando CITY ID
-     * Compatible con plan gratuito de Meteored
+     * Endpoint compatible con plan gratuito de Meteored
      */
     public String getForecastByCityId(String cityId) {
 
-        String url = String.format(
-                "%s/api/forecast/%s?key=%s&language=es",
-                meteoredBaseUrl,
-                cityId,
-                meteoredApiKey
-        );
+        String url = meteoredBaseUrl + "/api/forecast/" + cityId + "?language=es";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-KEY", meteoredApiKey);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         System.out.println("Meteored URL: " + url);
+        System.out.println("Meteored API KEY (header): OK");
 
-        return restTemplate.getForObject(url, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        return response.getBody();
     }
 }
