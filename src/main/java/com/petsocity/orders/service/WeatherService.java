@@ -1,10 +1,7 @@
 package com.petsocity.orders.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -12,33 +9,45 @@ import org.springframework.web.client.RestTemplate;
 public class WeatherService {
 
     @Value("${meteored.api.key}")
-    private String meteoredApiKey;
+    private String apiKey;
 
     @Value("${meteored.base.url}")
-    private String meteoredBaseUrl;
+    private String baseUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /**
-     * Endpoint compatible con plan gratuito de Meteored
-     */
-    public String getForecastByCityId(String cityId) {
-
-        String url = meteoredBaseUrl + "/api/forecast/" + cityId + "?language=es";
-
+    private HttpHeaders headers() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-API-KEY", meteoredApiKey);
+        headers.set("x-api-key", apiKey);
+        return headers;
+    }
 
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+    // 1️⃣ Obtener ubicación (HASH) por coordenadas
+    public String getLocationByCoords(double lat, double lon) {
 
-        System.out.println("Meteored URL: " + url);
-        System.out.println("Meteored API KEY (header): OK");
+        String url = String.format(
+                "%s/api/location/v1/search/coords/%.7f/%.7f",
+                baseUrl, lat, lon
+        );
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers());
 
         ResponseEntity<String> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                String.class
+                url, HttpMethod.GET, entity, String.class
+        );
+
+        return response.getBody();
+    }
+
+    // 2️⃣ Forecast diario usando HASH
+    public String getDailyForecastByHash(String hash) {
+
+        String url = baseUrl + "/api/forecast/v1/daily/" + hash;
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers());
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, String.class
         );
 
         return response.getBody();
