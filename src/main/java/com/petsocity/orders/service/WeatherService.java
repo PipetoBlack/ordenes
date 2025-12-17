@@ -1,9 +1,7 @@
 package com.petsocity.orders.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -17,30 +15,21 @@ public class WeatherService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String getLocationByCoords(double lat, double lon) {
+    /**
+     * Obtiene el pronóstico del tiempo usando CITY ID
+     * Compatible con plan gratuito de Meteored
+     */
+    public String getForecastByCityId(String cityId) {
 
-        // ✅ Endpoint gratuito de Meteored
         String url = String.format(
-            "%s/api/location/v1/search/coords/%.7f/%.7f?key=%s",
-            meteoredBaseUrl,
-            lat,
-            lon,
-            meteoredApiKey
+                "%s/api/forecast/%s?key=%s&language=es",
+                meteoredBaseUrl,
+                cityId,
+                meteoredApiKey
         );
 
-        System.out.println("URL Meteored (Location): " + url);
+        System.out.println("Meteored URL: " + url);
 
-        try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            System.out.println("Respuesta Meteored: " + response.getBody());
-            return response.getBody();
-        } catch (HttpClientErrorException e) {
-            System.out.println("Error HTTP: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            throw new RuntimeException("Error HTTP al obtener ubicación");
-        } catch (Exception e) {
-            System.out.println("Error general: " + e.getMessage());
-            throw new RuntimeException("Error general al obtener ubicación");
-        }
-
+        return restTemplate.getForObject(url, String.class);
     }
 }
