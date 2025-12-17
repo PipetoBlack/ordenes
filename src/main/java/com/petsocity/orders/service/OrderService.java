@@ -30,28 +30,32 @@ public class OrderService {
             order.setStatus("PENDING_PAYMENT");
             order.setCreatedAt(LocalDateTime.now());
 
-            log.info("🟢 Guardando orden: {}", order);
+            log.info("Guardando orden: {}", order);
 
             Order saved = repository.save(order);
 
-            // 🔥 LLAMADA A PAGOS PROTEGIDA
-            try {
-                paymentClient.createPayment(saved);
-                log.info("💰 Pago creado correctamente para orden {}", saved.getOrderCode());
-            } catch (Exception e) {
-                log.error("❌ Error creando pago para orden {}", saved.getOrderCode(), e);
+            // LLAMADA A PAGOS PROTEGIDA
+        try {
+            String paymentUrl = paymentClient.createPayment(saved);
 
-                // IMPORTANTE: NO romper la creación de la orden
-                saved.setStatus("PAYMENT_ERROR");
-                repository.save(saved);
-            }
+            saved.setPaymentUrl(paymentUrl);
+            saved.setStatus("PENDING_PAYMENT");
+            repository.save(saved);
 
-            return saved;
+            log.info("Pago creado correctamente para orden {}", saved.getOrderCode());
 
         } catch (Exception e) {
-            log.error("🔥 Error grave al crear orden", e);
-            throw new RuntimeException("No se pudo crear la orden");
+            log.error("Error creando pago para orden {}", saved.getOrderCode(), e);
+            saved.setStatus("PAYMENT_ERROR");
+            repository.save(saved);
         }
+
+        return saved;
+
+    } catch (Exception e) {
+        log.error("Error grave al crear orden", e);
+        throw new RuntimeException("No se pudo crear la orden");
+    }
     }
 
     public void markAsPaid(String orderCode) {
@@ -68,4 +72,7 @@ public class OrderService {
     public Optional<Order> getOrderByOrderId(Long orderId) {
         return repository.findByOrderId(orderId);
     }
+
+
+
 }
