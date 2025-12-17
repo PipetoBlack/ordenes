@@ -46,5 +46,34 @@ public ResponseEntity<?> createOrder(@RequestBody Order order) {
                         .body(Map.of("error", "Orden no encontrada")));
     }
 
+@PostMapping("/webhook")
+public ResponseEntity<?> webhook(@RequestBody Map<String, Object> payload) {
+    try {
+        // Obtén el código de la orden
+        String orderCode = (String) payload.get("commerceOrder");
+
+        // Mercado Pago puede mandar "status" o "collection_status"
+        String status = null;
+        if (payload.get("status") != null) {
+            status = payload.get("status").toString();
+        } else if (payload.get("collection_status") != null) {
+            status = payload.get("collection_status").toString();
+        }
+
+        if ("approved".equalsIgnoreCase(status)) {
+            service.markAsPaid(orderCode);
+        } else {
+            System.out.println("Webhook recibido, status: " + status + ", orderCode: " + orderCode);
+        }
+
+        // Siempre responder con un JSON consistente
+        return ResponseEntity.ok(Map.of("received", true));
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage(), "received", false));
+    }
+}
+
 
 }
