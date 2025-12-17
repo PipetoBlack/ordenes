@@ -4,6 +4,7 @@ import com.petsocity.orders.client.PaymentClient;
 import com.petsocity.orders.model.Order;
 import com.petsocity.orders.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository repository;
@@ -19,24 +21,40 @@ public class OrderService {
 
     public Order createOrder(Order order) {
 
-        // ✅ Generar un ID único basado en timestamp
-        long generatedId = System.currentTimeMillis();
+        try {
+            long generatedId = System.currentTimeMillis();
 
-        order.setOrderId(generatedId);
-        order.setOrderNumber("#" + generatedId);
-        order.setOrderCode("ORDER" + generatedId);
-        order.setStatus("PENDING_PAYMENT"); 
-        order.setCreatedAt(LocalDateTime.now());
+            order.setOrderId(generatedId);
+            order.setOrderNumber("#" + generatedId);
+            order.setOrderCode("ORDER" + generatedId);
+            order.setStatus("PENDING_PAYMENT");
+            order.setCreatedAt(LocalDateTime.now());
 
-        Order saved = repository.save(order);
+            log.info("🟢 Guardando orden: {}", order);
 
-        //  Llamar a la API Pagos
-        paymentClient.createPayment(saved);
+            Order saved = repository.save(order);
 
-        return saved;
+            // 🔥 LLAMADA A PAGOS PROTEGIDA
+            try {
+                paymentClient.createPayment(saved);
+                log.info("💰 Pago creado correctamente para orden {}", saved.getOrderCode());
+            } catch (Exception e) {
+                log.error("❌ Error creando pago para orden {}", saved.getOrderCode(), e);
+
+                // IMPORTANTE: NO romper la creación de la orden
+                saved.setStatus("PAYMENT_ERROR");
+                repository.save(saved);
+            }
+
+            return saved;
+
+        } catch (Exception e) {
+            log.error("🔥 Error grave al crear orden", e);
+            throw new RuntimeException("No se pudo crear la orden");
+        }
     }
 
-        public void markAsPaid(String orderCode) {
+    public void markAsPaid(String orderCode) {
         repository.findByOrderCode(orderCode).ifPresent(o -> {
             o.setStatus("PAID");
             repository.save(o);
@@ -47,7 +65,6 @@ public class OrderService {
         return repository.findAll();
     }
 
-    // ✅ Ahora debe buscar por Long, no String
     public Optional<Order> getOrderByOrderId(Long orderId) {
         return repository.findByOrderId(orderId);
     }

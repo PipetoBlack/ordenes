@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v1/orders")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class OrderController {
 
@@ -19,17 +19,17 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody Order order) {
-
-        // ✅ Generar ID único basado en timestamp
-        long generatedId = System.currentTimeMillis();
-
-        order.setOrderId(generatedId);
-        order.setOrderNumber("#" + generatedId);
-        order.setOrderCode("ORDER" + generatedId);
-
-        Order saved = service.createOrder(order);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        try {
+            Order saved = service.createOrder(order);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "error", "Error al crear la orden",
+                            "message", e.getMessage()
+                    ));
+        }
     }
 
     @GetMapping
@@ -37,18 +37,11 @@ public class OrderController {
         return ResponseEntity.ok(service.getAllOrders());
     }
 
-@GetMapping("/{orderId}")
-public ResponseEntity<?> getOrder(@PathVariable Long orderId) {
-    try {
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> getOrder(@PathVariable Long orderId) {
         return service.getOrderByOrderId(orderId)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Orden no encontrada")));
-    } catch (Exception e) {
-        e.printStackTrace(); // <- Aquí verás la causa real en la consola
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Error interno del servidor", "message", e.getMessage()));
     }
-}
-
 }
