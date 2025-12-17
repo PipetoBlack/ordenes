@@ -45,4 +45,21 @@ public ResponseEntity<?> createOrder(@RequestBody Order order) {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Orden no encontrada")));
     }
+
+    @PostMapping("/webhook")
+public ResponseEntity<?> webhook(@RequestBody Map<String, Object> payload) {
+    try {
+        String orderCode = (String) payload.get("commerceOrder");
+        String status = (String) payload.get("status"); // status que envía Mercado Pago
+
+        if ("approved".equalsIgnoreCase(status)) {
+            service.markAsPaid(orderCode);
+        }
+
+        return ResponseEntity.ok(Map.of("received", true));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+    }
+}
+
 }
